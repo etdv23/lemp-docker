@@ -1,0 +1,52 @@
+services:
+    nginx:
+        image: nginx:stable
+        depends_on:
+            - php
+        ports:
+            - 127.0.0.1:80:80
+        working_dir: /var/www
+        volumes:
+            - ./www:/var/www
+            - ./docker/volumes/nginx/conf.d:/etc/nginx/conf.d
+
+    php:
+        build: ./docker/images/php
+        working_dir: /var/www
+        volumes:
+            - ./www:/var/www
+            - ./docker/volumes/php/conf.d/zz_user.ini:/usr/local/etc/php/conf.d/zz_user.ini
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+
+    mariadb:
+        image: mariadb:10.11-ubi
+        hostname: mariadb.localhost
+        ports:
+            - 127.0.0.1:3306:3306
+        environment:
+            MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+            MYSQL_ROOT_HOST: "${MYSQL_ROOT_HOST}"
+        volumes:
+            - mariadb-data:/var/lib/mysql
+
+    pgsql:
+        image: postgres:16-alpine
+        hostname: pgsql.localhost
+        ports:
+            - 127.0.0.1:5432:5432
+        environment:
+            POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+
+    redis:
+        image: redis:latest
+        hostname: redis.localhost
+        ports:
+            - 127.0.0.1:6379:6379
+
+volumes:
+    mariadb-data:
+    postgres-data:
+
