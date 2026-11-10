@@ -39,6 +39,17 @@ services:
             POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
         volumes:
             - postgres-data:/var/lib/postgresql/data
+    
+    mysql:
+        image: mysql:8.0.46
+        hostname: mysql.localhost
+        ports:
+            - 127.0.0.1:3307:3306
+        environment:
+            MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+            MYSQL_ROOT_HOST: "${MYSQL_ROOT_HOST}"
+        volumes:
+            - mysql-data:/var/lib/mysql
 
     redis:
         image: redis:latest
@@ -46,7 +57,25 @@ services:
         ports:
             - 127.0.0.1:6379:6379
 
+    agents:
+        build: ./docker/images/agents
+        init: true
+        volumes:
+            # Shared agent skills, tools, and libraries
+            - ./docker/volumes/agents/agents:/root/.agents
+            # Claude Code: settings, CLAUDE.md memory, credentials, sessions, project memory
+            - ./docker/volumes/agents/claude:/root/.claude
+            # opencode: config + global AGENTS.md memory
+            - ./docker/volumes/agents/opencode/config:/root/.config/opencode
+            # opencode: auth.json, session database
+            - ./docker/volumes/agents/opencode/data:/root/.local/share/opencode
+            - ./www:/app/www
+            # - ../projects:/app/projects
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+
 volumes:
     mariadb-data:
     postgres-data:
+    mysql-data:
 
